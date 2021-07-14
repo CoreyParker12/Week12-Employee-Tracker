@@ -1,6 +1,8 @@
 const mysql = require('mysql');
 const inquirer = require('inquirer');
 
+// ************************* INITIALIZE ************************* //
+
 const connection = mysql.createConnection({
     host: 'localhost',
 
@@ -16,6 +18,7 @@ const connection = mysql.createConnection({
     database: 'cmsDB',
 });
 
+// ************************** HOMEPAGE ************************** //
 
 // Functions inside:
 //  addFunction()
@@ -46,6 +49,8 @@ const init = () => {
         });
 };
 
+// ********************* 1ST LEVEL OPTIONS ********************* //
+
 // Functions inside:
 //  addEmployee()
 //  addRole()
@@ -56,7 +61,7 @@ const addFunction = () => {
             name: 'addHomepage',
             type: 'rawlist',
             message: 'Would you like to add a(n) [EMPLOYEE], [ROLE], or [DEPARTMENT]?',
-            choices: ['EMPLOYEE', 'ROLE', 'DEPARTMENT', 'EXIT'],
+            choices: ['EMPLOYEE', 'ROLE', 'DEPARTMENT', 'BACK', 'EXIT'],
         })
         .then((answer) => {
             switch(answer.addHomepage){
@@ -68,13 +73,15 @@ const addFunction = () => {
                     break;   
                 case 'DEPARTMENT':
                     addDepartment();
+                    break; 
+                case 'BACK':
+                    init();
                     break;  
                 default:
                     exit();
             }
         });
 };
-
 
 // Functions inside:
 //  viewAll()
@@ -87,7 +94,7 @@ const viewFunction = () => {
             name: 'viewHomepage',
             type: 'rawlist',
             message: 'Would you like to view a(n) [ALL], [EMPLOYEE], [ROLE], or [DEPARTMENT]?',
-            choices: ['ALL', 'EMPLOYEE', 'ROLE', 'DEPARTMENT', 'EXIT'],
+            choices: ['ALL', 'EMPLOYEE', 'ROLE', 'DEPARTMENT', 'BACK', 'EXIT'],
         })
         .then((answer) => {
             switch(answer.viewHomepage){
@@ -102,7 +109,10 @@ const viewFunction = () => {
                     break;   
                 case 'DEPARTMENT':
                     viewDepartment();
-                    break;  
+                    break;
+                case 'BACK':
+                    init();
+                    break; 
                 default:
                     exit();
             }
@@ -119,7 +129,7 @@ const updateFunction = () => {
             name: 'updateHomepage',
             type: 'rawlist',
             message: 'Would you like to update an employee [ROLE], [MANAGER], or [DEPARTMENT]?',
-            choices: ['ROLE', 'MANAGER', 'DEPARTMENT', 'EXIT'],
+            choices: ['ROLE', 'MANAGER', 'DEPARTMENT', 'BACK', 'EXIT'],
         })
         .then((answer) => {
             switch(answer.updateHomepage){
@@ -131,11 +141,140 @@ const updateFunction = () => {
                     break;
                 case 'DEPARTMENT':
                     updateDepartment();
-                    break;   
+                    break;  
+                case 'BACK':
+                    init();
+                    break; 
                 default:
                     exit();
             }
         });
+};
+
+// ********************* 2ND LEVEL [ADD] ********************* //
+
+const addEmployee = () => {
+    
+    connection.query('SELECT * FROM role', (err, res) => {
+        if (err) throw err
+        const choices = res.map(item => { return item.title});
+
+    
+        inquirer
+        .prompt([
+            {
+            name: 'first_name',
+            type: 'input',
+            message: 'What is the employee\'s [FIRST NAME]?',
+            },
+            {
+            name: 'last_name',
+            type: 'input',
+            message: 'What is the employee\'s [LAST NAME]?',
+            },
+            {
+                name: 'title',
+                type: 'rawlist',
+                message: 'What is the employee\'s [ROLE]?',
+                choices: choices
+            },
+        ])
+        .then((answer) => {
+            // when finished prompting, insert a new item into the db with that info
+            connection.query('INSERT INTO employee SET ?',
+                {
+                    first_name: answer.first_name,
+                    last_name: answer.last_name,
+
+                },
+
+            );
+
+            console.log(`${answer.first_name} ${answer.last_name} was successfully added in the [      ] department with manager [     ]!`)
+            init();
+
+        });
+    });
+};
+
+const addRole = () => {
+    inquirer
+    .prompt([
+        {
+        name: 'title',
+        type: 'input',
+        message: 'What is the name of the [ROLE]?',
+        },
+        {
+        name: 'salary',
+        type: 'input',
+        message: 'What is the [SALARY] of this [ROLE]?',
+        },
+    ])
+    .then((answer) => {
+        // when finished prompting, insert a new item into the db with that info
+        connection.query('INSERT INTO role SET ?',
+        {
+            title: answer.title,
+            salary: answer.salary,
+        },
+        );
+        console.log(`The job of ${answer.title} was successfully added with a salary of: $${answer.salary}!`)
+        init();
+    });
+};
+
+const addDepartment = () => {
+    inquirer
+    .prompt([
+        {
+        name: 'name',
+        type: 'input',
+        message: 'What is the name of the [DEPARTMENT]?',
+        },
+    ])
+    .then((answer) => {
+        // when finished prompting, insert a new item into the db with that info
+        connection.query('INSERT INTO department SET ?',
+        {
+            name: answer.name
+        },
+        );
+        console.log(`The department of ${answer.name} was successfully added!`)
+        init();
+    });
+};
+
+// ******************** 2ND LEVEL [VIEW] ******************** //
+
+const viewAll = () => {
+
+};
+
+const viewEmployee = () => {
+
+};
+
+const viewRole = () => {
+
+};
+
+const viewDepartment = () => {
+
+};
+
+// ******************* 2ND LEVEL [UPDATE] ******************* //
+
+const updateRole = () => {
+
+};
+
+const updateManager = () => {
+
+};
+
+const updateDepartment = () => {
+
 };
 
 
