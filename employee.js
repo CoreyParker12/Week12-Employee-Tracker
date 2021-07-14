@@ -155,42 +155,39 @@ const updateFunction = () => {
 
 const addEmployee = () => {
     
-    connection.query('SELECT * FROM role', (err, res) => {
+    connection.query('SELECT title AS name, id AS value FROM role', (err, choices) => {
         if (err) throw err
-        const choices = res.map(item => { return item.title});
-
-    
         inquirer
         .prompt([
             {
-            name: 'first_name',
-            type: 'input',
-            message: 'What is the employee\'s [FIRST NAME]?',
+                name: 'first_name',
+                type: 'input',
+                message: 'What is the employee\'s [FIRST NAME]?',
             },
             {
-            name: 'last_name',
-            type: 'input',
-            message: 'What is the employee\'s [LAST NAME]?',
+                name: 'last_name',
+                type: 'input',
+                message: 'What is the employee\'s [LAST NAME]?',
             },
             {
                 name: 'title',
                 type: 'rawlist',
                 message: 'What is the employee\'s [ROLE]?',
-                choices: choices
+                choices,
             },
         ])
         .then((answer) => {
+            
+            //console.log(answer.title)
             // when finished prompting, insert a new item into the db with that info
             connection.query('INSERT INTO employee SET ?',
                 {
                     first_name: answer.first_name,
                     last_name: answer.last_name,
-
+                    role_id: answer.title
                 },
-
             );
-
-            console.log(`${answer.first_name} ${answer.last_name} was successfully added in the [      ] department with manager [     ]!`)
+            console.log(`${answer.first_name} ${answer.last_name} was successfully added!`)
             init();
 
         });
