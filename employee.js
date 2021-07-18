@@ -30,7 +30,7 @@ const init = () => {
             name: 'homepage',
             type: 'rawlist',
             message: 'Would you like to [ADD], [VIEW], or [UPDATE]?',
-            choices: ['ADD', 'VIEW', 'UPDATE', 'EXIT'],
+            choices: ['ADD', 'VIEW', 'UPDATE', 'xxx EXIT'],
         })
         .then((answer) => {
             switch(answer.homepage){
@@ -61,7 +61,7 @@ const addFunction = () => {
             name: 'addHomepage',
             type: 'rawlist',
             message: 'Would you like to add a(n) [EMPLOYEE], [ROLE], or [DEPARTMENT]?',
-            choices: ['EMPLOYEE', 'ROLE', 'DEPARTMENT', 'BACK', 'EXIT'],
+            choices: ['EMPLOYEE', 'ROLE', 'DEPARTMENT', '<-- BACK', 'xxx EXIT'],
         })
         .then((answer) => {
             switch(answer.addHomepage){
@@ -74,7 +74,7 @@ const addFunction = () => {
                 case 'DEPARTMENT':
                     addDepartment();
                     break; 
-                case 'BACK':
+                case '<-- BACK':
                     init();
                     break;  
                 default:
@@ -94,7 +94,7 @@ const viewFunction = () => {
             name: 'viewHomepage',
             type: 'rawlist',
             message: 'Would you like to view a(n) [ALL], [EMPLOYEE], [ROLE], or [DEPARTMENT]?',
-            choices: ['ALL', 'EMPLOYEE', 'ROLE', 'DEPARTMENT', 'BACK', 'EXIT'],
+            choices: ['ALL', 'EMPLOYEE', 'ROLE', 'DEPARTMENT', '<-- BACK', 'xxx EXIT'],
         })
         .then((answer) => {
             switch(answer.viewHomepage){
@@ -110,7 +110,7 @@ const viewFunction = () => {
                 case 'DEPARTMENT':
                     viewDepartment();
                     break;
-                case 'BACK':
+                case '<-- BACK':
                     init();
                     break; 
                 default:
@@ -129,7 +129,7 @@ const updateFunction = () => {
             name: 'updateHomepage',
             type: 'rawlist',
             message: 'Would you like to update an employee [ROLE], [MANAGER], or [DEPARTMENT]?',
-            choices: ['ROLE', 'MANAGER', 'DEPARTMENT', 'BACK', 'EXIT'],
+            choices: ['ROLE', 'MANAGER', 'DEPARTMENT', '<-- BACK', 'xxx EXIT'],
         })
         .then((answer) => {
             switch(answer.updateHomepage){
@@ -142,7 +142,7 @@ const updateFunction = () => {
                 case 'DEPARTMENT':
                     updateDepartment();
                     break;  
-                case 'BACK':
+                case '<-- BACK':
                     init();
                     break; 
                 default:
@@ -155,8 +155,6 @@ const updateFunction = () => {
 
 const addEmployee = () => {
     
-    connection.query('SELECT title AS name, id AS value FROM role', (err, choices) => {
-        if (err) throw err
         inquirer
         .prompt([
             {
@@ -173,51 +171,87 @@ const addEmployee = () => {
                 name: 'title',
                 type: 'rawlist',
                 message: 'What is the employee\'s [ROLE]?',
-                choices,
+                choices: pickRole()
+            },
+            {
+                name: 'manager_id',
+                type: 'rawlist',
+                message: 'Who is the employee\'s manager?',
+                choices: pickManager()
             },
         ])
         .then((answer) => {
-            
-            //console.log(answer.title)
-            // when finished prompting, insert a new item into the db with that info
+            let pickedManager = pickManager().indexOf(answer.manager_id) + 1;
+            let pickedRole = pickRole().indexOf(answer.title) + 1;
             connection.query('INSERT INTO employee SET ?',
                 {
                     first_name: answer.first_name,
                     last_name: answer.last_name,
-                    role_id: answer.title
+                    role_id: pickedRole,
+                    manager_id: pickedManager
                 },
             );
-            console.log(`${answer.first_name} ${answer.last_name} was successfully added!`)
+            console.log('Added employee successfully!');
             init();
-
         });
-    });
+};
+
+let managerArray = [];
+const pickManager = () => {
+  connection.query('SELECT first_name FROM employee', (err, res) => {
+    if (err) throw err
+    for (let i = 0; i < res.length; i++) {
+      managerArray.push(res[i].first_name);
+    };
+  });
+  return managerArray;
+};
+
+let roleArray = [];
+const pickRole = () => {
+  connection.query('SELECT title FROM role', (err, res) => {
+    if (err) throw err
+    for (let i = 0; i < res.length; i++) {
+      roleArray.push(res[i].title);
+    };
+  });
+  return roleArray;
 };
 
 const addRole = () => {
-    inquirer
-    .prompt([
-        {
-        name: 'title',
-        type: 'input',
-        message: 'What is the name of the [ROLE]?',
-        },
-        {
-        name: 'salary',
-        type: 'input',
-        message: 'What is the [SALARY] of this [ROLE]?',
-        },
-    ])
-    .then((answer) => {
-        // when finished prompting, insert a new item into the db with that info
-        connection.query('INSERT INTO role SET ?',
-        {
-            title: answer.title,
-            salary: answer.salary,
-        },
-        );
-        console.log(`The job of ${answer.title} was successfully added with a salary of: $${answer.salary}!`)
-        init();
+    connection.query('SELECT name AS name, id AS value FROM department', (err, choices) => {
+        if (err) throw err
+        inquirer
+        .prompt([
+            {
+            name: 'title',
+            type: 'input',
+            message: 'What is the name of the [ROLE]?',
+            },
+            {
+            name: 'salary',
+            type: 'input',
+            message: 'What is the [SALARY] of this [ROLE]?',
+            },
+            {
+            name: 'department_id',
+            type: 'rawlist',
+            message: 'What is the [DEPARTMENT] of this [ROLE]?',
+            choices
+            },
+        ])
+        .then((answer) => {
+            // when finished prompting, insert a new item into the db with that info
+            connection.query('INSERT INTO role SET ?',
+                {
+                    title: answer.title,
+                    salary: answer.salary,
+                    department_id: answer.department_id
+                },
+            );
+            console.log('New [ROLE] Added Successfully!');
+            init();
+        });
     });
 };
 
@@ -237,7 +271,7 @@ const addDepartment = () => {
             name: answer.name
         },
         );
-        console.log(`The department of ${answer.name} was successfully added!`)
+        console.log('New [DEPARTMENT] Added Successfully!')
         init();
     });
 };
@@ -245,19 +279,36 @@ const addDepartment = () => {
 // ******************** 2ND LEVEL [VIEW] ******************** //
 
 const viewAll = () => {
+    // connection.query('SELECT first_name,last_name,title AS name,role_id AS value from employee,role,department', (err, res) => {
+    //     if (err) throw err
+
+    // });
+    console.log('This path is not set up yet!');
+    init();
 
 };
 
 const viewEmployee = () => {
-
+    connection.query('SELECT * from employee', (err, res) => {
+        if (err) throw err
+        console.table(res);
+    });
 };
 
 const viewRole = () => {
-
+    connection.query('SELECT * from role RIGHT JOIN department ON department.id = department_id', (err, res) => {
+        if (err) throw err
+        console.table(res);
+        init();
+    });
 };
 
 const viewDepartment = () => {
-
+    connection.query('SELECT name FROM department', (err, res) => {
+        if (err) throw err
+        console.table(res);
+        init();
+    });
 };
 
 // ******************* 2ND LEVEL [UPDATE] ******************* //
