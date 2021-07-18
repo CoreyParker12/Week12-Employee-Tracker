@@ -1,3 +1,6 @@
+// REFERENCES
+//  1. https://www.guru99.com/joins.html
+
 const mysql = require('mysql');
 const inquirer = require('inquirer');
 
@@ -188,7 +191,7 @@ const addEmployee = () => {
                     first_name: answer.first_name,
                     last_name: answer.last_name,
                     role_id: pickedRole,
-                    manager_id: pickedManager
+                    manager_id: pickedManager || null
                 },
             );
             console.log('Added employee successfully!');
@@ -282,12 +285,22 @@ const pickRole = () => {
 // ******************** 2ND LEVEL [VIEW] ******************** //
 
 const viewAll = () => {
-    connection.query('SELECT * FROM employee RIGHT JOIN role ON role.id = role_id RIGHT JOIN department ON department.id = department_id', (err, res) => {
+    // INNER JOIN: Returns rows that satisfy both conditions
+    // LEFT JOIN: Returns all of the rows of the initial condition, but null in the seconds condition where it does not apply
+    connection.query(
+    `SELECT employee.first_name AS FIRST_NAME,
+    employee.last_name AS LAST_NAME,
+    role.title AS JOB_TITLE,
+    role.salary AS SALARY,
+    department.name AS DEPARTMENT,
+    CONCAT(joined.first_name, " " ,joined.last_name) AS MANAGER FROM employee
+    INNER JOIN role ON role.id = employee.role_id
+    INNER JOIN department ON department.id = role.department_id
+    LEFT JOIN employee joined ON employee.manager_id = joined.id`, (err, res) => {
         if (err) throw err
         console.table(res);
+        init();
     });
-    init();
-
 };
 
 const viewEmployee = () => {
