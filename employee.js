@@ -196,27 +196,6 @@ const addEmployee = () => {
         });
 };
 
-let managerArray = [];
-const pickManager = () => {
-  connection.query('SELECT first_name FROM employee', (err, res) => {
-    if (err) throw err
-    for (let i = 0; i < res.length; i++) {
-      managerArray.push(res[i].first_name);
-    };
-  });
-  return managerArray;
-};
-
-let roleArray = [];
-const pickRole = () => {
-  connection.query('SELECT title FROM role', (err, res) => {
-    if (err) throw err
-    for (let i = 0; i < res.length; i++) {
-      roleArray.push(res[i].title);
-    };
-  });
-  return roleArray;
-};
 
 const addRole = () => {
     connection.query('SELECT name AS name, id AS value FROM department', (err, choices) => {
@@ -276,27 +255,51 @@ const addDepartment = () => {
     });
 };
 
+// ***************** SUBSET OF ADD EMPLOYEE ***************** //
+
+let managerArray = [];
+const pickManager = () => {
+  connection.query('SELECT first_name FROM employee', (err, res) => {
+    if (err) throw err
+    for (let i = 0; i < res.length; i++) {
+      managerArray.push(res[i].first_name);
+    };
+  });
+  return managerArray;
+};
+
+let roleArray = [];
+const pickRole = () => {
+  connection.query('SELECT title FROM role', (err, res) => {
+    if (err) throw err
+    for (let i = 0; i < res.length; i++) {
+      roleArray.push(res[i].title);
+    };
+  });
+  return roleArray;
+};
+
 // ******************** 2ND LEVEL [VIEW] ******************** //
 
 const viewAll = () => {
-    // connection.query('SELECT first_name,last_name,title AS name,role_id AS value from employee,role,department', (err, res) => {
-    //     if (err) throw err
-
-    // });
-    console.log('This path is not set up yet!');
+    connection.query('SELECT * FROM employee RIGHT JOIN role ON role.id = role_id RIGHT JOIN department ON department.id = department_id', (err, res) => {
+        if (err) throw err
+        console.table(res);
+    });
     init();
 
 };
 
 const viewEmployee = () => {
-    connection.query('SELECT * from employee', (err, res) => {
+    connection.query('SELECT first_name, last_name FROM employee', (err, res) => {
         if (err) throw err
         console.table(res);
+        init();
     });
 };
 
 const viewRole = () => {
-    connection.query('SELECT * from role RIGHT JOIN department ON department.id = department_id', (err, res) => {
+    connection.query('SELECT title, salary from role', (err, res) => {
         if (err) throw err
         console.table(res);
         init();
