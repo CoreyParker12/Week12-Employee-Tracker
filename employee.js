@@ -191,14 +191,13 @@ const addEmployee = () => {
                     first_name: answer.first_name,
                     last_name: answer.last_name,
                     role_id: pickedRole,
-                    manager_id: pickedManager || null
+                    manager_id: pickedManager
                 },
             );
             console.log('Added employee successfully!');
             init();
         });
 };
-
 
 const addRole = () => {
     connection.query('SELECT name AS name, id AS value FROM department', (err, choices) => {
@@ -262,13 +261,13 @@ const addDepartment = () => {
 
 let managerArray = [];
 const pickManager = () => {
-  connection.query('SELECT first_name FROM employee', (err, res) => {
+    connection.query('SELECT first_name FROM employee', (err, res) => {
     if (err) throw err
-    for (let i = 0; i < res.length; i++) {
-      managerArray.push(res[i].first_name);
-    };
-  });
-  return managerArray;
+        for (let i = 0; i < res.length; i++) {
+            managerArray.push(res[i].first_name);
+        };
+    });
+    return managerArray;
 };
 
 let roleArray = [];
@@ -279,6 +278,7 @@ const pickRole = () => {
       roleArray.push(res[i].title);
     };
   });
+  console.log(roleArray)
   return roleArray;
 };
 
@@ -330,7 +330,34 @@ const viewDepartment = () => {
 // ******************* 2ND LEVEL [UPDATE] ******************* //
 
 const updateRole = () => {
-
+    connection.query('SELECT employee.last_name, role.title FROM employee JOIN role ON employee.role_id = role.id;', (err, res) => {    
+        inquirer
+        .prompt([
+            {
+            name: 'last_name',
+            type: 'rawlist',
+            message: 'What is the Employee\'s last name?',
+            choices: updateEmployeeRole(res)
+            },
+            {
+            name: 'title',
+            type: 'rawlist',
+            message: 'What is the Employee\'s new role?',
+            choices: pickRole()
+            }
+        ])
+        .then((answer) => {
+            let newRole = pickRole().indexOf(answer.title) + 1;
+            console.log(newRole)
+            console.log(answer.last_name)
+            connection.query('UPDATE employee SET role_id = ? WHERE last_name = ?', [newRole, answer.last_name],
+                (err) => {
+                    if (err) throw err
+                    init();
+                }
+            );
+        });
+    });
 };
 
 const updateManager = () => {
@@ -341,11 +368,19 @@ const updateDepartment = () => {
 
 };
 
+let lastName = [];
+const updateEmployeeRole = (res) => {
+        for (let i = 0; i < res.length; i++) {
+        lastName.push(res[i].last_name);
+        }
+        return lastName;
+}
 
 // Function to exit from inquirer at the end of each switch statement
 const exit = () => {
     console.log('Thank you, exiting program.')
     process.exit();
 };
+
 
 init();
