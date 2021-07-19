@@ -25,5 +25,5 @@
 My GitHub: [CoreyParker12](https://github.com/CoreyParker12)  
 Email: coreyparker012@gmail.com
 
-Video Walkthrough: [Video Walkthrough](https://drive.google.com/file/d/1pP1JNmq1sxNSNSQD-pqm49bes84Pkp6X/view?usp=sharing)
+Video Walkthrough: [Video Walkthrough](https://drive.google.com/file/d/17SJleoLre26rRsMppiY5-wtC1YI10y5Q/view?usp=sharing)
 
