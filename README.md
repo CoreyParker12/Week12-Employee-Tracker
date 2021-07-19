@@ -8,13 +8,8 @@
 
 ## Table of Contents
 
-  * [Installation Instructions](#installation)
-  * [Usage](#usage)
   * [License](#license)
-  * [Contributing](#contributing)
-  * [Tests](#tests)
   * [Questions](#questions)
-
 
 ## License
 
