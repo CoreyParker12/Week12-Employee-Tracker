@@ -1,10 +1,18 @@
 // REFERENCES
 //  1. https://www.guru99.com/joins.html
 
+// NOTE: This code can be most easily read if all functions are minimized until needed
+// P.S. Not sure if there are bonus points for being able to display everything at once, but that was a hard one.
+
 const mysql = require('mysql');
 const inquirer = require('inquirer');
+const consoleTable = require('console.table');
 
-// ************************* INITIALIZE ************************* //
+// ********************************************************* //
+// *********************** INITIALIZE *********************** //
+// ********************************************************* //
+
+// Creates connection
 
 const connection = mysql.createConnection({
     host: 'localhost',
@@ -21,12 +29,17 @@ const connection = mysql.createConnection({
     database: 'cmsDB',
 });
 
-// ************************** HOMEPAGE ************************** //
+// ********************************************************* //
+// ************************ HOMEPAGE ************************ //
+// ********************************************************* //
+
+// "Homepage" of the function. Asks the user initial questions and routes them to children functions
 
 // Functions inside:
 //  addFunction()
 //  viewFunction()
 //  updateFunction()
+
 const init = () => {
     inquirer
         .prompt({
@@ -52,12 +65,17 @@ const init = () => {
         });
 };
 
-// ********************* 1ST LEVEL OPTIONS ********************* //
+// ********************************************************* //
+// ******************* 1ST LEVEL OPTIONS ******************* //
+// ********************************************************* //
+
+// Add employee, role, or department
 
 // Functions inside:
 //  addEmployee()
 //  addRole()
 //  addDepartment() 
+
 const addFunction = () => {
     inquirer
         .prompt({
@@ -86,11 +104,14 @@ const addFunction = () => {
         });
 };
 
+// View all, employee, role, or department
+
 // Functions inside:
 //  viewAll()
 //  viewEmployee()
 //  viewRole()
 //  viewDepartment()
+
 const viewFunction = () => {
     inquirer
         .prompt({
@@ -122,10 +143,13 @@ const viewFunction = () => {
         });
 };
 
+// Update Role. Currently functionality is not built out to update Managers or Departments
+
 // Functions inside:
 //  updateRole()
 //  updateManager()
 //  updateDepartment()
+
 const updateFunction = () => {
     inquirer
         .prompt({
@@ -154,7 +178,12 @@ const updateFunction = () => {
         });
 };
 
+// ********************************************************* //
 // ********************* 2ND LEVEL [ADD] ********************* //
+// ********************************************************* //
+
+// Logic to add a new employee
+// Uses functions that call the existing role list as well as the existing manager list to choose from
 
 const addEmployee = () => {
     
@@ -184,8 +213,10 @@ const addEmployee = () => {
             },
         ])
         .then((answer) => {
+            // Gives back the id of the manager or role at that index number
             let pickedManager = pickManager().indexOf(answer.manager_id) + 1;
             let pickedRole = pickRole().indexOf(answer.title) + 1;
+            // Inserts completed employee into database
             connection.query('INSERT INTO employee SET ?',
                 {
                     first_name: answer.first_name,
@@ -194,10 +225,12 @@ const addEmployee = () => {
                     manager_id: pickedManager
                 },
             );
-            console.log('Added employee successfully!');
+            console.log('New [EMPLOYEE] added successfully!');
             init();
         });
 };
+
+// Logic that adds a new role
 
 const addRole = () => {
     connection.query('SELECT name AS name, id AS value FROM department', (err, choices) => {
@@ -222,7 +255,7 @@ const addRole = () => {
             },
         ])
         .then((answer) => {
-            // when finished prompting, insert a new item into the db with that info
+            // Inserts completed role into database
             connection.query('INSERT INTO role SET ?',
                 {
                     title: answer.title,
@@ -236,6 +269,8 @@ const addRole = () => {
     });
 };
 
+// Logic that adds a new department
+
 const addDepartment = () => {
     inquirer
     .prompt([
@@ -246,7 +281,7 @@ const addDepartment = () => {
         },
     ])
     .then((answer) => {
-        // when finished prompting, insert a new item into the db with that info
+        // Inserts the completed department into database
         connection.query('INSERT INTO department SET ?',
         {
             name: answer.name
@@ -257,7 +292,11 @@ const addDepartment = () => {
     });
 };
 
+// ********************************************************* //
 // ***************** SUBSET OF ADD EMPLOYEE ***************** //
+// ********************************************************* //
+
+// Logic used for addEmployee() to get the list of existing managers and display it in choices
 
 let managerArray = [];
 const pickManager = () => {
@@ -270,19 +309,30 @@ const pickManager = () => {
     return managerArray;
 };
 
+// Logic used for addEmployee() to get the list of existing roles and display it in choices
+
 let roleArray = [];
 const pickRole = () => {
-  connection.query('SELECT title FROM role', (err, res) => {
-    if (err) throw err
-    for (let i = 0; i < res.length; i++) {
-      roleArray.push(res[i].title);
-    };
-  });
-  console.log(roleArray)
-  return roleArray;
+    connection.query('SELECT title FROM role', (err, res) => {
+        if (err) throw err
+            for (let i = 0; i < res.length; i++) {
+                roleArray.push(res[i].title);
+            };
+    });
+    return roleArray;
 };
 
+// ********************************************************* //
 // ******************** 2ND LEVEL [VIEW] ******************** //
+// ********************************************************* //
+
+// Very tricky logic to return all of the main fields at once. Displays:
+//      First Name
+//      Last Name
+//      Title
+//      Salary
+//      Department
+//      Manager
 
 const viewAll = () => {
     // INNER JOIN: Returns rows that satisfy both conditions
@@ -303,6 +353,9 @@ const viewAll = () => {
     });
 };
 
+
+// Views all current employees in the database
+
 const viewEmployee = () => {
     connection.query('SELECT first_name, last_name FROM employee', (err, res) => {
         if (err) throw err
@@ -310,6 +363,8 @@ const viewEmployee = () => {
         init();
     });
 };
+
+// Views all current roles in the database
 
 const viewRole = () => {
     connection.query('SELECT title, salary from role', (err, res) => {
@@ -319,6 +374,8 @@ const viewRole = () => {
     });
 };
 
+// Vies all current departments in the database
+
 const viewDepartment = () => {
     connection.query('SELECT name FROM department', (err, res) => {
         if (err) throw err
@@ -327,7 +384,13 @@ const viewDepartment = () => {
     });
 };
 
+// ********************************************************* //
 // ******************* 2ND LEVEL [UPDATE] ******************* //
+// ********************************************************* //
+
+// Updates the employee role
+// Uses a new function updateEmployeeRole() to select the employee's last name from a list
+// Uses the pickRole() function again from further up in the code to select from existing roles
 
 const updateRole = () => {
     connection.query('SELECT employee.last_name, role.title FROM employee JOIN role ON employee.role_id = role.id;', (err, res) => {    
@@ -346,10 +409,11 @@ const updateRole = () => {
             choices: pickRole()
             }
         ])
+        // Currently this will only work if your roles are inputted into your database in alphabetical order
+        // Would like to make this better for future use
         .then((answer) => {
             let newRole = pickRole().indexOf(answer.title) + 1;
-            console.log(newRole)
-            console.log(answer.last_name)
+            // Sets the employee's role to the new value where the last name equals the selected last name
             connection.query('UPDATE employee SET role_id = ? WHERE last_name = ?', [newRole, answer.last_name],
                 (err) => {
                     if (err) throw err
@@ -361,12 +425,16 @@ const updateRole = () => {
 };
 
 const updateManager = () => {
-
+    console.log('Check back soon for added Update Manager functionality!')
+    init();
 };
 
 const updateDepartment = () => {
-
+    console.log('Check back soon for added Update Department functionality!')
+    init();
 };
+
+// Logic to get the list of employee's names to be used in updateRole()
 
 let lastName = [];
 const updateEmployeeRole = (res) => {
@@ -376,7 +444,12 @@ const updateEmployeeRole = (res) => {
         return lastName;
 }
 
+// ********************************************************* //
+// ************************** EXIT ************************** //
+// ********************************************************* //
+
 // Function to exit from inquirer at the end of each switch statement
+
 const exit = () => {
     console.log('Thank you, exiting program.')
     process.exit();
